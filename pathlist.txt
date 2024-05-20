@@ -1,0 +1,14 @@
+sftp.json
+sftp-config.json
+.vscode/sftp.json
+.vscode/sftp-config.json
+mj.php
+up.php
+x.php
+idx_cgi
+ALFA_DATA
+info.php
+i.php
+infophp.php
+robots.txt
+.git
