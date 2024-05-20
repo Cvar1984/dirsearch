@@ -9,7 +9,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Command\Command;
 
-
 $app = new Application();
 $app->register('dirsearch')
     ->addArgument('url', InputArgument::REQUIRED, 'Path to url list')
@@ -30,10 +29,8 @@ $app->register('dirsearch')
                     $outputError->writeln(sprintf('<error>%s is missing http(s)<error>', $url));
                     continue;
                 }
-                $url = rtrim($url, '/');
                 foreach ($pathList as $path) {
-                    $path = ltrim($path, '/');
-                    $entry = $url . '/' . $path;
+                    $entry = rtrim($url, '/') . '/' . ltrim($path, '/');
                     curl_setopt($ch, CURLOPT_URL, $entry);
                     curl_setopt($ch, CURLOPT_TIMEOUT, $input->getArgument('timeout'));
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -42,11 +39,18 @@ $app->register('dirsearch')
                     curl_exec($ch);
                     $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-                    if ($statusCode == 200 || $statusCode == 403) {
-                        $output->writeln(sprintf('<info>%s: %s</info>', $statusCode, $entry));
-                        if ($input->getArgument('output')) {
-                            file_put_contents($input->getArgument('output'), $entry. PHP_EOL, FILE_APPEND);
-                        }
+                    switch ($statusCode) {
+                        case 200:
+                            $output->writeln(sprintf('<info>%s: %s</info>', $statusCode, $entry));
+                            break;
+                        case 403:
+                            $output->writeln(sprintf('<question>%s: %s</question>', $statusCode, $entry));
+                            break;
+                        default:
+                            continue 2;
+                    }
+                    if ($input->getArgument('output')) {
+                        file_put_contents($input->getArgument('output'), $entry . PHP_EOL, FILE_APPEND);
                     }
                 }
             }
